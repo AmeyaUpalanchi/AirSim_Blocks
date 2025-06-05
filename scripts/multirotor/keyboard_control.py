@@ -36,13 +36,7 @@
 # 1. Ensure AirSim is running with the correct settings (see settings.json example).
 # 2. Run the script: `python keyboard_control.py`
 # 3. Enter commands: connect, takeoff, fly, land, quit, or auto
-# 4. During flight (after 'fly'), use the following keys:
-#    - W/S: Move forward/backward
-#    - A/D: Move left/right
-#    - R/F: Move up/down
-#    - Q/E: Rotate left/right (yaw)
-#    - SPACE: Stop movement
-#    - ESC: Land the drone and exit flight mode
+# 4. During flight (after 'fly'), use the keyboard controls displayed at startup.
 #
 # Example settings.json (place in C:\Users\<YourUser>\Documents\AirSim\settings.json):
 # {
@@ -61,6 +55,7 @@
 import airsim
 import keyboard
 import time
+import sys
 
 class DroneController:
     def __init__(self, client):
@@ -80,8 +75,8 @@ class DroneController:
         self.movement_speed = 10.0  # Speed in m/s
         self.rotation_speed = 30.0  # Yaw rate in degrees/s
         
-        # Optional: Enable velocity logging for debugging
-        self.log_velocity = False
+        # Enable velocity logging if --verbose is passed
+        self.log_velocity = "--verbose" in sys.argv
 
     def initialize_drone_connection(self):
         """Establish connection with the drone in AirSim."""
@@ -113,6 +108,10 @@ class DroneController:
             time.sleep(2)  # Allow time for the drone to stabilize
             self.is_flying = True
             print("Drone has launched successfully.")
+            # Log initial position for debugging
+            state = self.client.getMultirotorState(vehicle_name="SimpleFlight")
+            pos = state.kinematics_estimated.position
+            print(f"Initial position: x={pos.x_val:.2f}, y={pos.y_val:.2f}, z={pos.z_val:.2f}")
             return True
         except Exception as e:
             print(f"Launch failed: {e}")
@@ -160,7 +159,7 @@ class DroneController:
                     print("Moving up")
                 if keyboard.is_pressed('f'):
                     self.velocity_z = self.movement_speed
-                    print("Moving down")
+                    print(f"Moving down (velocity_z={self.velocity_z})")
                 if keyboard.is_pressed('q'):
                     self.yaw_rate = -self.rotation_speed
                     print("Rotating left")
@@ -178,10 +177,12 @@ class DroneController:
                         yaw_mode=airsim.YawMode(is_rate=True, yaw_or_rate=self.yaw_rate),
                         vehicle_name="SimpleFlight"
                     ).join()
-                    # Optional velocity logging
-                    if self.log_velocity:
-                        state = self.client.getMultirotorState(vehicle_name="SimpleFlight")
-                        vel = state.kinematics_estimated.linear_velocity
+                    # Log position and velocity for debugging
+                    state = self.client.getMultirotorState(vehicle_name="SimpleFlight")
+                    pos = state.kinematics_estimated.position
+                    vel = state.kinematics_estimated.linear_velocity
+                    print(f"Position: x={pos.x_val:.2f}, y={pos.y_val:.2f}, z={pos.z_val:.2f}")
+                    if self.log_velocity or self.velocity_z != 0:  # Always log if moving up/down
                         print(f"Velocity: x={vel.x_val:.2f}, y={vel.y_val:.2f}, z={vel.z_val:.2f}")
                 except Exception as e:
                     print(f"Movement error: {e}")
@@ -205,7 +206,7 @@ class DroneController:
         print("\n" + "="*50)
         print("KEYBOARD CONTROL ACTIVE")
         print("="*50)
-        print("Controls:")
+        print("Controls (reminder):")
         print("  W/S - Forward/Backward")
         print("  A/D - Left/Right") 
         print("  R/F - Up/Down")
@@ -226,10 +227,23 @@ class DroneController:
             self.is_controlling = False
             print("Keyboard control ended.")
 
-def run_keyboard_control():
+def display_key_mappings():
+    """Display the keyboard control mappings for the user."""
+    print("\nKeyboard Controls:")
+    print("="*50)
+    print("  W/S - Forward/Backward")
+    print("  A/D - Left/Right") 
+    print("  R/F - Up/Down")
+    print("  Q/E - Yaw Left/Right")
+    print("  SPACE - Stop")
+    print("  ESC - Land and Exit")
+    print("="*50)
+
+def run_drone_control():
     """Run the main drone control program."""
     print("DRONE CONTROL PROGRAM")
     print("=" * 40)
+    display_key_mappings()  # Show key mappings at startup
     
     # Initialize AirSim client
     try:
@@ -287,4 +301,4 @@ if __name__ == "__main__":
         exit(1)
     
     print("All requirements satisfied.")
-    run_keyboard_control()
+    run_drone_control()
