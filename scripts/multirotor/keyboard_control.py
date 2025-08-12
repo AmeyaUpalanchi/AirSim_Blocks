@@ -157,7 +157,7 @@ class DroneController:
                 if keyboard.is_pressed('r'):
                     self.velocity_z = -self.movement_speed
                     print("Moving up")
-                if keyboard.is_pressed('f'):
+                if keyboard.is_pressed('g'):
                     self.velocity_z = self.movement_speed
                     print(f"Moving down (velocity_z={self.velocity_z})")
                 if keyboard.is_pressed('q'):
@@ -209,7 +209,7 @@ class DroneController:
         print("Controls (reminder):")
         print("  W/S - Forward/Backward")
         print("  A/D - Left/Right") 
-        print("  R/F - Up/Down")
+        print("  R/G - Up/Down")
         print("  Q/E - Yaw Left/Right")
         print("  SPACE - Stop")
         print("  ESC - Land and Exit")
@@ -233,7 +233,7 @@ def display_key_mappings():
     print("="*50)
     print("  W/S - Forward/Backward")
     print("  A/D - Left/Right") 
-    print("  R/F - Up/Down")
+    print("  R/G - Up/Down")
     print("  Q/E - Yaw Left/Right")
     print("  SPACE - Stop")
     print("  ESC - Land and Exit")
